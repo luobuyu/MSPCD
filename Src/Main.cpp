@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 	{
 		cfg.timeout = 60;
 		cfg.random_seed = 10;
-		string in_name = "t50_40_6"; // 运行差别很大
+		string in_name = "t50_40_6"; //
 		env.set_instance_name(in_name);
 		freopen(env.instance_path().c_str(), "r", stdin);
 	}
