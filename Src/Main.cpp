@@ -7,7 +7,8 @@ void run_single_instance(Environment& env) {
 	solve.run();
 	if (SHOW_SOL_LOG)
 	{
-		//solve.record_sol(env.solution_path_with_time());
+		solve.record_sol(env.solution_path_with_time());
+		solve.check();
 		solve.record_log(env.log_path());
 	}
 	else
@@ -34,9 +35,9 @@ int main(int argc, char* argv[]) {
 	}
 	else 
 	{
-		cfg.timeout = 60;
-		cfg.random_seed = 10;
-		string in_name = "t50_40_6"; //
+		cfg.timeout = 10;
+		cfg.random_seed = 1234;
+		string in_name = "t100_80_5"; //
 		env.set_instance_name(in_name);
 		freopen(env.instance_path().c_str(), "r", stdin);
 	}

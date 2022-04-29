@@ -34,6 +34,7 @@ struct Config {
 	int ccr = 1;
 	int max_tabu_times = 1000;
 	int randmove_max_iter = 10;
+	int randmove_times = 500;
 	Config():timeout(3600)
 	{
 		random_seed = std::random_device{}();

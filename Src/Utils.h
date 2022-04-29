@@ -171,7 +171,7 @@ namespace fast_io
 } // namespace FAST_IO
 
 namespace Debug {
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
 #define eprintf(x) fprintf(stderr, x)
 #define eputs(str) fputs(str, stderr), fputc('\n', stderr)

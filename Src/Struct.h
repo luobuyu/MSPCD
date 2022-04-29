@@ -36,7 +36,6 @@ struct Operation
 	int dura_time;//持续时间
 	int Q;
 	int R;//从起点到当前操作的时间
-	int du;//后续节点的个数，入度吧？
 	Operation() {}
 	Operation(int id, int time, int r) :task_id(id), dura_time(time), R(r)
 	{
