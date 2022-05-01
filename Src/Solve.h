@@ -1269,6 +1269,7 @@ public:
 				}
 				x++;
 			}
+			if (move_machine.m1 == -1 && move_machine.v == -1) cerr << "随机移动---机器---异常！" << endl;
 			if (x == cfg.randmove_times && find_move_seq) make_move_seq(move_seq);
 		}
 	}
@@ -1299,17 +1300,13 @@ public:
 	void record_sol() const
 	{
 		cout << best_makespan << endl;
-		int cnt;
 		for (int i = 0; i < best_machine.size(); ++i)
 		{
-			cnt = 0;
 			for (const auto& item : best_machine[i])
 			{
 				if (item.task_id == Start || item.task_id == End) continue;
 				cout << item.task_id << " " << item.dura_time << "    ";
-				cnt += item.dura_time;
 			}
-			cerr << cnt << endl;
 			cout << endl;
 		}
 	}

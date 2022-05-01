@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
 	}
 	else 
 	{
-		cfg.timeout = 10;
+		cfg.timeout = 60;
 		cfg.random_seed = 1234;
-		string in_name = "t100_80_5"; //
+		string in_name = "t500_80_6"; //
 		env.set_instance_name(in_name);
 		freopen(env.instance_path().c_str(), "r", stdin);
 	}

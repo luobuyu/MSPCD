@@ -31,7 +31,7 @@ struct Config {
 	unsigned int random_seed = 100;
 	int timeout = 3600;  // ³¬Ê±Ê±¼ä
 	int machine_num = 2;
-	int ccr = 1;
+	int ccr = 0;
 	int max_tabu_times = 1000;
 	int randmove_max_iter = 10;
 	int randmove_times = 500;
