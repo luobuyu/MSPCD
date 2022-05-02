@@ -9,7 +9,7 @@
 using namespace utils;
 using namespace fast_io;
 using namespace Debug;
-
+//#define SHOW_MOVE
 class Solve {
 
 private:
@@ -21,6 +21,7 @@ private:
 	Timer timer;
 	vector<vector<Operation>> machine;		// 解的数据结构
 	vector<vector<Operation>> best_machine;	// 最优解	
+	vector<pair<int, int> > task_of_machine;
 	vector<int> R;	// start 到 i 的最长路
 	vector<int> Q;	// end 到 i 的最长路
 	vector<vector<Block>> critical_block;
@@ -47,17 +48,18 @@ public:
 
 	Solve() = delete;
 	
-	Solve(const Environment& env, const Config& cfg) :
+	Solve(const Environment& env, Config& cfg) :
 		_env(env), _cfg(cfg), _ins(env), _gen(_cfg.random_seed),
 		timer(cfg.timeout), _duration(0), _iteration(0),
 		R(_ins.get_vir_task_num()), Q(_ins.get_vir_task_num()),
-		Start(0), End(_ins.get_task_num() + 1),
+		Start(0), End(_ins.get_task_num() + 1), task_of_machine(_ins.get_vir_task_num()),
 		makespan(INF), best_makespan(INF),
 		machine(cfg.machine_num), best_machine(cfg.machine_num),
 		critical_block(cfg.machine_num), tabu_list(cfg.machine_num, 5, 10),
 		tabu_machine(_ins.get_vir_task_num(), cfg.machine_num, 20, 30),
 		_all_iteration(0)
-		 {}	// 把 _obj_area初始化为最大值
+		 {
+	}	// 把 _obj_area初始化为最大值
 
 	// [lb, ub)
 	int fast_rand(int lb, int ub)
@@ -277,6 +279,11 @@ public:
 			best_makespan = makespan;
 			best_machine.clear();
 			best_machine = machine;
+			for (int i = 0; i < _ins.get_vir_task_num(); ++i)
+			{
+				task_of_machine[i].first = _ins.get_tasks()[i].belong_machine;
+				task_of_machine[i].second = _ins.get_tasks()[i].machine_seq;
+			}
 			_iteration = iter;	// 记录最优解出现的迭代次数
 			_duration = timer.getDuration();	// 记录运行时间
 			return true;
@@ -422,6 +429,7 @@ public:
 			auto& jp_v_task = _ins.get_tasks()[edge.v];
 			int cc_time = D[jp_v_task.belong_machine][machine_id] * edge.w * cfg.ccr;
 			if (task_u_id == edge.v || machine[machine_id][u].R < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R + cc_time) return false;
+			//if (task_u_id == edge.v || machine[machine_id][u].Q + cc_time > machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R) return false;
 		}
 		return true;
 	}
@@ -1010,39 +1018,51 @@ public:
 		{
 			MoveSeq move_seq = find_move_seq(iter);
 			MoveMachine move_machine = find_move_machine(iter);
-
+			
+			
 			if (move_seq.obj != -1 && move_machine.obj != -1)
 			{
 				if (move_seq.obj < move_machine.obj)
 				{
 					make_move_seq(move_seq);
+					watch_move_seq(move_seq);
 				}
 				else if (move_seq.obj > move_machine.obj)
 				{
 					make_move_machine(move_machine);
+					watch_move_machine(move_machine);
 				}
 				else if (move_seq.obj == move_machine.obj)
 				{
 					if (rand() % 2 == 0)
+					{
 						make_move_seq(move_seq);
+						watch_move_seq(move_seq);
+					}
 					else
+					{
 						make_move_machine(move_machine);
+						watch_move_machine(move_machine);
+					}
 				}
 			}
 			else if (move_seq.obj == -1 && move_machine.obj == -1)
 			{
+				cerr << "找不到了" << endl;
 				break;
 			}
 			else if (move_seq.obj == -1 && move_machine.obj != -1)
 			{
 				make_move_machine(move_machine);
+				watch_move_machine(move_machine);
 			}
 			else if (move_seq.obj != -1 && move_machine.obj == -1)
 			{
 				make_move_seq(move_seq);
+				watch_move_seq(move_seq);
 			}
-			sum_critical_path();
 
+			sum_critical_path();
 			if (check_obj(_all_iteration))
 			{
 				is_update_best_makespan = true;
@@ -1278,16 +1298,17 @@ public:
 		init_solution();
 		sum_critical_path();
 		check_obj(_all_iteration);
+		int pre_makespan = makespan;
 		while (!timer.isTimeout()) 
 		{
 			tabu_search();
-			watch(makespan, best_makespan);
+			watch(timer.getDuration(), pre_makespan, makespan, best_makespan);
 			for (int i = 0; i < cfg.randmove_max_iter; ++i)
 			{
-				//watch(i);
 				randmove();
 				sum_critical_path();
 			}
+			pre_makespan = makespan;
 		}
 	}
 
@@ -1318,17 +1339,17 @@ public:
 	// 写入标准错误流
 	void record_log() {
 		// 写入表头
-		writeLog(LineType::HEAD, "date", "instance", "makespan", "total_iterTimes", "optimal_iterTimes", "randomSeed", "total_time", "optimal_time");
+		writeLog(LineType::HEAD, "date", "instance", "makespan", "cfg.ccr", "total_iterTimes", "optimal_iterTimes", "randomSeed", "total_time", "optimal_time");
 		// 写入行数据
-		writeLog(LineType::LINE, utils::Date::to_format_str(), _env.instance_name(), best_makespan, _all_iteration, _iteration, _cfg.random_seed, timer.getDuration(), _duration);
+		writeLog(LineType::LINE, utils::Date::to_format_str(), _env.instance_name(), best_makespan, cfg.ccr, _all_iteration, _iteration, _cfg.random_seed, timer.getDuration(), _duration);
 	}
 	// 写入日志文件
 	void record_log(string log_path)
 	{
 		// 写入表头
-		writeLog(log_path, LineType::HEAD, "date", "instance", "makespan", "total_iterTimes", "optimal_iterTimes", "randomSeed", "total_time", "optimal_time");
+		writeLog(log_path, LineType::HEAD, "date", "instance", "makespan", "cfg.ccr", "total_iterTimes", "optimal_iterTimes", "randomSeed", "total_time", "optimal_time");
 		// 写入行数据
-		writeLog(log_path, LineType::LINE, utils::Date::to_format_str(), _env.instance_name(), best_makespan, _all_iteration, _iteration, _cfg.random_seed, timer.getDuration(), _duration);
+		writeLog(log_path, LineType::LINE, utils::Date::to_format_str(), _env.instance_name(), best_makespan, cfg.ccr, _all_iteration, _iteration, _cfg.random_seed, timer.getDuration(), _duration);
 	}
 
 public:
@@ -1348,6 +1369,7 @@ public:
 				indeg[task_id] += (j != 0);
 			}
 		}
+		// 拓扑 求一下所有点的开始时间
 		dis[Start] = 0;
 		q.push(Start);
 		while (!q.empty())
@@ -1355,9 +1377,9 @@ public:
 			int u = q.front(); q.pop();
 			// machine 序列
 			auto& task_u = _ins.get_tasks()[u];
-			if (task_u.machine_seq + 1 < best_machine[task_u.belong_machine].size())
+			if (task_of_machine[u].second + 1 < best_machine[task_of_machine[u].first].size())
 			{
-				int ms_id = best_machine[task_u.belong_machine][task_u.machine_seq + 1].task_id;
+				int ms_id = best_machine[task_of_machine[u].first][task_of_machine[u].second + 1].task_id;
 				dis[ms_id] = max(dis[ms_id], dis[u] + task_u.length);
 				if (--indeg[ms_id] == 0)
 				{
@@ -1368,7 +1390,7 @@ public:
 			{
 				auto& edge = _ins.get_js()[u][i];
 				auto& js_u_task = _ins.get_tasks()[edge.v];
-				int cc_time = D[task_u.belong_machine][js_u_task.belong_machine] * edge.w * cfg.ccr;
+				int cc_time = D[task_of_machine[u].first][task_of_machine[edge.v].first] * edge.w * cfg.ccr;
 				dis[edge.v] = max(dis[edge.v], dis[u] + task_u.length + cc_time);
 				if (--indeg[edge.v] == 0)
 				{
@@ -1376,16 +1398,18 @@ public:
 				}
 			}
 		}
+
 		assert(dis[End] == best_makespan);
 		for (int i = 0; i < _ins.get_vir_task_num(); ++i)
 		{
-			auto& task_u = _ins.get_tasks()[i];
+			//auto& task_u = _ins.get_tasks()[i];
 			for (int j = 0; j < _ins.get_jp()[i].size(); ++j)
 			{
-				auto& edge = _ins.get_js()[i][j];
+				auto& edge = _ins.get_jp()[i][j];
 				auto& jp_u_task = _ins.get_tasks()[edge.v];
-				int cc_time = D[task_u.belong_machine][jp_u_task.belong_machine] * edge.w * cfg.ccr;
-				assert(dis[edge.v] + cc_time <= dis[u]);
+				int cc_time = D[task_of_machine[i].first][task_of_machine[edge.v].first] * edge.w * cfg.ccr;
+				// check 所有前驱完成之后，该任务才能开始
+				assert(dis[edge.v] + cc_time + jp_u_task.length <= dis[edge.u]);
 			}
 		}
 		for (int i = 0; i < best_machine.size(); ++i)
@@ -1397,9 +1421,29 @@ public:
 				pre = dis[best_machine[i][j].task_id] + best_machine[i][j].dura_time;
 			}
 		}
-		//cerr << dis[End] << endl;
+		
 	}
 
+	void watch_move_seq(MoveSeq move_seq)
+	{
+#ifdef SHOW_MOVE
+		int u = machine[move_seq.machine_id][move_seq.u].task_id;
+		int v = machine[move_seq.machine_id][move_seq.v].task_id;
+		bool is_forward = move_seq.is_forward;
+		watch(move_seq.obj, u, v, is_forward);
+#endif // SHOW_MOVE
+	}
+
+	void watch_move_machine(MoveMachine move_machine)
+	{
+#ifdef SHOW_MOVE
+		int m1 = move_machine.m1;
+		int u = machine[move_machine.m1][move_machine.u].task_id;
+		int m2 = move_machine.m2;
+		int v = machine[move_machine.m2][move_machine.v].task_id;
+		watch(move_machine.obj, m1, u, m2, v);
+#endif // SHOW_MOVE
+	}
 
 };
 #endif // !_SRC_SOLVE_H_

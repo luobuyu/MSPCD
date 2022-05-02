@@ -186,13 +186,27 @@ namespace Debug {
 	template <class printable>
 	void trace(const char* name, printable&& value)
 	{
-		cerr << name << " = " << value << endl;
+		if (name[1] == '"')
+		{
+			cerr << value << endl;
+		}
+		else
+		{
+			cerr << name << " = " << value << endl;
+		}
 	}
 	template <class printable, class ...args>
 	void trace(const char* names, printable&& value, args &&...list)
 	{
 		const char* separate = strchr(names + 1, ',');
-		cerr.write(names, separate - names) << " = " << value << ',';
+		if (names[1] == '"')
+		{
+			cerr << value << ',';
+		}
+		else
+		{
+			cerr.write(names, separate - names) << " = " << value << ',';
+		}
 		trace(separate + 1, list...);
 	}
 }

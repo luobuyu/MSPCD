@@ -20,7 +20,12 @@ private:
 
 public:
 	//Environment(const string& ins_str) : _ins_path(ins_str) { utils::split_filename(_ins_path, _ins_dir, _ins_name, _ins_id); }
-	void set_instance_name(string name) { _ins_name = name; }
+	void set_instance_name(string name, int& machine_num) 
+	{ 
+		_ins_name = name; 
+		size_t x = _ins_name.find_last_of("_");
+		machine_num = atoi(_ins_name.substr(x + 1).c_str());
+	}
 public:
 	const string& instance_name() const { return _ins_name; }
 	string instance_path() const { return instance_dir() + _ins_name + file_suffix(); }
@@ -32,8 +37,8 @@ public:
 	string log_path() const { return solution_dir() + "log.csv"; }
 private:
 	static string file_suffix() { return ".td"; }
-	static string instance_dir() { return "../Deploy/Instance/Bench/"; }
-	static string solution_dir() { return "../Deploy/Solution/Bench/"; }
+	static string instance_dir() { return "../Deploy/Instance/Bench_opt/"; }
+	static string solution_dir() { return "../Deploy/Solution/Bench_opt/"; }
 };
 
 // 读取样例，并将样例处理后存起来

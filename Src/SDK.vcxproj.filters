@@ -2693,5 +2693,13 @@
     <None Include="..\Deploy\Instance\Bench\in.td">
       <Filter>资源文件\Bench</Filter>
     </None>
+    <None Include="..\Deploy\Solution\Bench_opt\log.csv">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Deploy\Instance\Bench_opt\readme.txt">
+      <Filter>资源文件\Bench_opt</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -118,7 +118,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>%PROTOBUF_HOME%\include;%GUROBI_HOME%\include;%ZLIB_HOME%\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1040,7 +1040,11 @@
     <None Include="..\Deploy\Instance\Bench_opt\ogra50_90_8.td" />
     <None Include="..\Deploy\Instance\Bench_opt\ogra50_90_9.td" />
     <None Include="..\Deploy\Solution\Bench\log.csv" />
+    <None Include="..\Deploy\Solution\Bench_opt\log.csv" />
     <None Include="test.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Deploy\Instance\Bench_opt\readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
