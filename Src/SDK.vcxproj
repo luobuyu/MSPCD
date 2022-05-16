@@ -339,6 +339,7 @@
     <None Include="..\Deploy\Instance\Bench\t50_80_4.td" />
     <None Include="..\Deploy\Instance\Bench\t50_80_5.td" />
     <None Include="..\Deploy\Instance\Bench\t50_80_6.td" />
+    <None Include="..\Deploy\Instance\Bench_opt\example9_10_4.td" />
     <None Include="..\Deploy\Instance\Bench_opt\ogra100_00_12.td" />
     <None Include="..\Deploy\Instance\Bench_opt\ogra100_00_16.td" />
     <None Include="..\Deploy\Instance\Bench_opt\ogra100_00_2.td" />

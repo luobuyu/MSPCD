@@ -2696,6 +2696,9 @@
     <None Include="..\Deploy\Solution\Bench_opt\log.csv">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="..\Deploy\Instance\Bench_opt\example9_10_4.td">
+      <Filter>资源文件\Bench_opt</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\Deploy\Instance\Bench_opt\readme.txt">

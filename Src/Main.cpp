@@ -19,7 +19,6 @@ void run_single_instance(Environment& env) {
 	}
 }
 
-
 int main(int argc, char* argv[]) {
 	Environment env;
 	if (argc == 3) // exe  timeout  seed  machine_num
@@ -38,10 +37,10 @@ int main(int argc, char* argv[]) {
 	}
 	else 
 	{
-		cfg.timeout = 60 * 10;
-		//cfg.timeout = 10;
-		cfg.random_seed = 100;
-		string in_name = "ogra500_90_4"; //
+		//cfg.timeout = 100000;
+		cfg.timeout = 10;
+		cfg.random_seed = 1;
+		string in_name = "example9_10_4"; //
 		env.set_instance_name(in_name, cfg.machine_num);
 		freopen(env.instance_path().c_str(), "r", stdin);
 	}

@@ -303,6 +303,7 @@ public:
 			auto& js_u_task = _ins.get_tasks()[edge.v];
 			int cc_time = D[js_u_task.belong_machine][machine_id] * edge.w * cfg.ccr;
 			if ((task_v_id == edge.v) || machine[machine_id][v].Q < machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time) return false;
+			//if ((task_v_id == edge.v) || machine[machine_id][v].get_q_time() < machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time() + cc_time) return false;
 		}
 		return true;
 	}
@@ -429,7 +430,7 @@ public:
 			auto& jp_v_task = _ins.get_tasks()[edge.v];
 			int cc_time = D[jp_v_task.belong_machine][machine_id] * edge.w * cfg.ccr;
 			if (task_u_id == edge.v || machine[machine_id][u].R < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R + cc_time) return false;
-			//if (task_u_id == edge.v || machine[machine_id][u].Q + cc_time > machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R) return false;
+			//if (task_u_id == edge.v || machine[machine_id][u].get_r_time() < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].get_r_time() + cc_time) return false;
 		}
 		return true;
 	}
@@ -1335,6 +1336,14 @@ public:
 	void draw_sol(const string& html_path) const {
 
 	}
+	//// 可视化检查
+	//void draw_sol(const string& html_path) const {
+	//	utils_visualize_drawer::Drawer html_drawer(html_path, _width, _height);
+	//	for (auto& dst_node : _dst) {
+	//		html_drawer.rect(dst_node.lb_point.x, dst_node.lb_point.y,
+	//			dst_node.width, dst_node.height, dst_node.rotation == Rotation::_90_);
+	//	}
+	//}
 
 	// 写入标准错误流
 	void record_log() {
