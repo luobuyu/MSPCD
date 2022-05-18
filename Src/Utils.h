@@ -186,7 +186,7 @@ namespace Debug {
 	template <class printable>
 	void trace(const char* name, printable&& value)
 	{
-		if (name[1] == '"')
+		if (name[0] == '"')
 		{
 			cerr << value << endl;
 		}
@@ -199,7 +199,7 @@ namespace Debug {
 	void trace(const char* names, printable&& value, args &&...list)
 	{
 		const char* separate = strchr(names + 1, ',');
-		if (names[1] == '"')
+		if (names[0] == '"')
 		{
 			cerr << value << ',';
 		}

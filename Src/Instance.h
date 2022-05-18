@@ -17,14 +17,13 @@ private:
 	string _ins_dir;
 	string _ins_name;
 	string _ins_id;
-
+	int machine_num;
 public:
 	//Environment(const string& ins_str) : _ins_path(ins_str) { utils::split_filename(_ins_path, _ins_dir, _ins_name, _ins_id); }
-	void set_instance_name(string name, int& machine_num) 
+	void set_instance_name(string name, int machine_num) 
 	{ 
-		_ins_name = name; 
-		size_t x = _ins_name.find_last_of("_");
-		machine_num = atoi(_ins_name.substr(x + 1).c_str());
+		_ins_name = name;
+		this->machine_num = machine_num;
 	}
 public:
 	const string& instance_name() const { return _ins_name; }
@@ -35,10 +34,18 @@ public:
 	string sol_html_path() const { return solution_dir() + _ins_name + ".html"; }
 	string sol_html_path_with_time() const { return solution_dir() + _ins_name + "." + utils::Date::to_long_str() + ".html"; }
 	string log_path() const { return solution_dir() + "log.csv"; }
-private:
+
+	int get_machine_num() const { return machine_num; }
+
 	static string file_suffix() { return ".td"; }
-	static string instance_dir() { return "../Deploy/Instance/Bench_opt/"; }
-	static string solution_dir() { return "../Deploy/Solution/Bench_opt/"; }
+	static string instance_dir() 
+	{ 
+		return "../Deploy/Instance/Bench/"; 
+	}
+	static string solution_dir() 
+	{ 
+		return "../Deploy/Solution/Bench/"; 
+	}
 };
 
 // 读取样例，并将样例处理后存起来
@@ -51,8 +58,23 @@ private:
 	vector<Task> _tasks;
 	vector<vector<Edge>> _js;
 	vector<vector<Edge>> _jp;
+	int best_ans;
+	int machine_num;
 public:
-	Instance(const Environment& env) : _env(env) { read_instance(); }
+	Instance(const Environment& env) : _env(env) { read_instance(); set_best_ans(); }
+
+	void set_best_ans()
+	{
+		machine_num = _env.get_machine_num();
+		if (_env.instance_name()[0] == 'o')
+		{
+			best_ans = 600 + (_task_num - 50) / 50 * 200;
+		}
+		else
+		{
+			best_ans = -100;
+		}
+	}
 
 	/*********getter and setter************/
 	vector<Task>& get_tasks() { return _tasks; }
@@ -60,7 +82,8 @@ public:
 	vector<vector<Edge>>& get_jp() { return _jp; }
 	int get_task_num() { return _task_num; }
 	int get_vir_task_num() { return _vir_task_num; }
-
+	int get_best_ans() { return best_ans; }
+	int get_machine_num() { return machine_num; }
 private:
 	void read_instance() {
 		cin >> _task_num;

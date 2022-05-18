@@ -5,9 +5,9 @@ import random
 import sys
 
 exe_path = "../x64/Debug/"
-instance_path = "../Deploy/Instance/Bench/"
-solution_path = "../Deploy/Solution/Bench/"
-log_path = "../Deploy/Solution/log.csv"
+instance_path = "../Deploy/Instance/Bench_opt/"
+solution_path = "../Deploy/Solution/Bench_opt/"
+log_path = "../Deploy/Solution/Bench_opt/log.csv"
 help = """
 1. 测试所有样例
 ./test.py all
@@ -32,12 +32,14 @@ def load_all_instance():
 # 加载可执行文件
 def load_exe():
     for name in os.listdir(exe_path):
-        if name[-4:] == '.exe':
+        if name[-3:] == 'exe':
             return exe_path + name
 
 # 运行单个样例  exe   timeout   seed      instance_name
 def run_single_instance_with_times(file_name, times = 1):
     timeout = 10
+    # 注意设置一下程序运行时间
+    
     for i in range(times):
         r = random.randint(0, 65536)
         order = load_exe() + ' ' + str(timeout) + ' ' + str(r) + ' ' + file_name[:file_name.rfind('.')] + ' < ' + instance_path + file_name + ' > ' + solution_path + file_name
@@ -59,6 +61,7 @@ def run_exe_times(times = 1):
         order = load_exe() + ' ' + str(timeout) + ' ' + str(r)
         print(order)
         os.system(order)
+
 
 def check_platform():
     global exe_path, instance_path, solution_path, log_path

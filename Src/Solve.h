@@ -54,9 +54,9 @@ public:
 		R(_ins.get_vir_task_num()), Q(_ins.get_vir_task_num()),
 		Start(0), End(_ins.get_task_num() + 1), task_of_machine(_ins.get_vir_task_num()),
 		makespan(INF), best_makespan(INF),
-		machine(cfg.machine_num), best_machine(cfg.machine_num),
-		critical_block(cfg.machine_num), tabu_list(cfg.machine_num, 5, 10),
-		tabu_machine(_ins.get_vir_task_num(), cfg.machine_num, 20, 30),
+		machine(_ins.get_machine_num()), best_machine(_ins.get_machine_num()),
+		critical_block(_ins.get_machine_num()), tabu_list(_ins.get_machine_num(), 5, 10),
+		tabu_machine(_ins.get_vir_task_num(), _ins.get_machine_num(), 20, 30),
 		_all_iteration(0)
 		 {
 	}	// 把 _obj_area初始化为最大值
@@ -302,8 +302,10 @@ public:
 			auto& edge = _ins.get_js()[task_u_id][i];
 			auto& js_u_task = _ins.get_tasks()[edge.v];
 			int cc_time = D[js_u_task.belong_machine][machine_id] * edge.w * cfg.ccr;
-			if ((task_v_id == edge.v) || machine[machine_id][v].Q < machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time) return false;
+			//if ((task_v_id == edge.v) || machine[machine_id][v].Q < machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time) return false;
 			//if ((task_v_id == edge.v) || machine[machine_id][v].get_q_time() < machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time() + cc_time) return false;
+
+			if ((task_v_id == edge.v) || machine[machine_id][v].get_q_time() < machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time()) return false;
 		}
 		return true;
 	}
@@ -338,7 +340,7 @@ public:
 		if (u >= 1) mp = machine[machine_id][u - 1].get_r_time();
 		R_copy[l1 - u] = max(jp, mp);
 
-		// [l1, v]
+		// [l2, v]
 		for (int i = u + 2; i <= v; ++i)
 		{
 			jp = 0;
@@ -429,8 +431,10 @@ public:
 			auto& edge = _ins.get_jp()[task_v_id][i];
 			auto& jp_v_task = _ins.get_tasks()[edge.v];
 			int cc_time = D[jp_v_task.belong_machine][machine_id] * edge.w * cfg.ccr;
-			if (task_u_id == edge.v || machine[machine_id][u].R < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R + cc_time) return false;
+			//if (task_u_id == edge.v || machine[machine_id][u].R < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].R + cc_time) return false;
 			//if (task_u_id == edge.v || machine[machine_id][u].get_r_time() < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].get_r_time() + cc_time) return false;
+
+			if (task_u_id == edge.v || machine[machine_id][u].get_r_time() < machine[jp_v_task.belong_machine][jp_v_task.machine_seq].get_r_time()) return false;
 		}
 		return true;
 	}
@@ -801,8 +805,9 @@ public:
 		MoveMachine ret;
 		// 求一下 JP(u)
 		// 求出左端点 满足 jp(u).Q - cc_time >= left.Q, 才能在left的前面插入
-		// 保证了 JP(u) 完成之后将数据传送到 u
-		int min_jp_sub_cc_time = INF;
+		// 保证了 JP(u) 完成之后将数据传送到 u 
+		//int min_jp_sub_cc_time = INF;
+		int min_jp_sub_cc_time = 0;
 		int u_task_id = machine[m1][u].task_id;
 		set<int> jp_task_ids;
 		for (int i = 0; i < _ins.get_jp()[u_task_id].size(); ++i)
@@ -811,7 +816,8 @@ public:
 			auto& jp_u_task = _ins.get_tasks()[edge.v];
 			jp_task_ids.insert(edge.v);
 			int cc_time = D[m2][jp_u_task.belong_machine] * edge.w * cfg.ccr;
-			min_jp_sub_cc_time = min(min_jp_sub_cc_time, machine[jp_u_task.belong_machine][jp_u_task.machine_seq].Q - cc_time);
+			//min_jp_sub_cc_time = min(min_jp_sub_cc_time, machine[jp_u_task.belong_machine][jp_u_task.machine_seq].Q - cc_time);
+			min_jp_sub_cc_time = max(min_jp_sub_cc_time, machine[jp_u_task.belong_machine][jp_u_task.machine_seq].get_r_time());
 			jp = max(jp, machine[jp_u_task.belong_machine][jp_u_task.machine_seq].get_r_time() + cc_time);
 		}
 		// rigth u left
@@ -821,7 +827,13 @@ public:
 		//{
 		//	left++;
 		//}
-		while (left < R && ((machine[m2][left].Q > min_jp_sub_cc_time || jp_task_ids.count(machine[m2][left].task_id))))
+		
+		//while (left < R && ((machine[m2][left].Q > min_jp_sub_cc_time || jp_task_ids.count(machine[m2][left].task_id))))
+		//{
+		//	left++;
+		//}
+
+		while (left < R && ((machine[m2][left].get_r_time() < min_jp_sub_cc_time || jp_task_ids.count(machine[m2][left].task_id))))
 		{
 			left++;
 		}
@@ -839,7 +851,8 @@ public:
 			auto& js_u_task = _ins.get_tasks()[edge.v];
 			js_task_ids.insert(edge.v);
 			int cc_time = D[m2][js_u_task.belong_machine] * edge.w * cfg.ccr;
-			max_js_add_cc_time = max(max_js_add_cc_time, machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time);
+			//max_js_add_cc_time = max(max_js_add_cc_time, machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time);
+			max_js_add_cc_time = max(max_js_add_cc_time, machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time());
 			js = max(js, machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time() + cc_time);
 		}
 
@@ -850,7 +863,13 @@ public:
 		//{
 		//	right--;
 		//}
-		while (right >= L && ((machine[m2][right].Q < max_js_add_cc_time) || js_task_ids.count(machine[m2][right].task_id)))
+		
+		//while (right >= L && ((machine[m2][right].Q < max_js_add_cc_time) || js_task_ids.count(machine[m2][right].task_id)))
+		//{
+		//	right--;
+		//}
+
+		while (right >= L && ((machine[m2][right].get_q_time() < max_js_add_cc_time) || js_task_ids.count(machine[m2][right].task_id)))
 		{
 			right--;
 		}
@@ -1025,42 +1044,42 @@ public:
 			{
 				if (move_seq.obj < move_machine.obj)
 				{
-					make_move_seq(move_seq);
 					watch_move_seq(move_seq);
+					make_move_seq(move_seq);
 				}
 				else if (move_seq.obj > move_machine.obj)
 				{
-					make_move_machine(move_machine);
 					watch_move_machine(move_machine);
+					make_move_machine(move_machine);
 				}
 				else if (move_seq.obj == move_machine.obj)
 				{
 					if (rand() % 2 == 0)
 					{
-						make_move_seq(move_seq);
 						watch_move_seq(move_seq);
+						make_move_seq(move_seq);
 					}
 					else
 					{
-						make_move_machine(move_machine);
 						watch_move_machine(move_machine);
+						make_move_machine(move_machine);
 					}
 				}
 			}
 			else if (move_seq.obj == -1 && move_machine.obj == -1)
 			{
-				cerr << "找不到了" << endl;
+				watch("找不到了");
 				break;
 			}
 			else if (move_seq.obj == -1 && move_machine.obj != -1)
 			{
-				make_move_machine(move_machine);
 				watch_move_machine(move_machine);
+				make_move_machine(move_machine);
 			}
 			else if (move_seq.obj != -1 && move_machine.obj == -1)
 			{
-				make_move_seq(move_seq);
 				watch_move_seq(move_seq);
+				make_move_seq(move_seq);
 			}
 
 			sum_critical_path();
@@ -1130,7 +1149,10 @@ public:
 				auto& edge = _ins.get_js()[u_task_id][i];
 				auto& js_u_task = _ins.get_tasks()[edge.v];
 				int cc_time = D[m1][js_u_task.belong_machine] * edge.w * cfg.ccr;
-				if (machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time > machine[m2][left].Q
+				//if (machine[js_u_task.belong_machine][js_u_task.machine_seq].Q + cc_time > machine[m2][left].Q
+				//	|| edge.v == machine[m2][left].task_id) return false;
+
+				if (machine[js_u_task.belong_machine][js_u_task.machine_seq].get_q_time() > machine[m2][left].get_q_time()
 					|| edge.v == machine[m2][left].task_id) return false;
 			}
 			
@@ -1163,7 +1185,10 @@ public:
 				auto& edge = _ins.get_jp()[u_task_id][i];
 				auto& jp_u_task = _ins.get_tasks()[edge.v];
 				int cc_time = D[m1][jp_u_task.belong_machine] * edge.w * cfg.ccr;
-				if (machine[jp_u_task.belong_machine][jp_u_task.machine_seq].Q - cc_time < machine[m2][right].Q
+				//if (machine[jp_u_task.belong_machine][jp_u_task.machine_seq].Q - cc_time < machine[m2][right].Q
+				//	|| edge.v == machine[m2][right].task_id) return false;
+
+				if (machine[jp_u_task.belong_machine][jp_u_task.machine_seq].get_r_time() > machine[m2][right].get_r_time()
 					|| edge.v == machine[m2][right].task_id) return false;
 
 			}	
@@ -1231,7 +1256,7 @@ public:
 				break;	// 只要存在一个合法就会直接 break 了
 			}
 		}
-		if(move_seq.u == -1 && move_seq.v == -1) cerr << "随机移动异常！" << endl;
+		if(move_seq.u == -1 && move_seq.v == -1) watch("随机移动异常！");
 		if (fast_rand(2) == 0 && find_move_seq)
 		{
 			//cerr << "执行了 make_move_seq \t";
@@ -1290,7 +1315,7 @@ public:
 				}
 				x++;
 			}
-			if (move_machine.m1 == -1 && move_machine.v == -1) cerr << "随机移动---机器---异常！" << endl;
+			if (move_machine.m1 == -1 && move_machine.v == -1) watch("随机移动---机器---异常！");
 			if (x == cfg.randmove_times && find_move_seq) make_move_seq(move_seq);
 		}
 	}
@@ -1300,16 +1325,29 @@ public:
 		sum_critical_path();
 		check_obj(_all_iteration);
 		int pre_makespan = makespan;
-		while (!timer.isTimeout()) 
+		
+		while (!timer.isTimeout() && best_makespan != _ins.get_best_ans()) 
 		{
 			tabu_search();
 			watch(timer.getDuration(), pre_makespan, makespan, best_makespan);
-			for (int i = 0; i < cfg.randmove_max_iter; ++i)
-			{
-				randmove();
-				sum_critical_path();
-			}
+			perturbation(cfg.randmove_max_iter);
 			pre_makespan = makespan;
+		}
+	}
+
+	void perturbation(int times)
+	{
+		//machine = best_machine;
+		//for (int i = 0; i < _ins.get_vir_task_num(); ++i)
+		//{
+		//	_ins.get_tasks()[i].belong_machine = task_of_machine[i].first;
+		//	_ins.get_tasks()[i].machine_seq = task_of_machine[i].second;
+		//}
+		//sum_critical_path();
+		for (int i = 0; i < times; ++i)
+		{
+			randmove();
+			sum_critical_path();
 		}
 	}
 
@@ -1327,7 +1365,7 @@ public:
 			for (const auto& item : best_machine[i])
 			{
 				if (item.task_id == Start || item.task_id == End) continue;
-				cout << item.task_id << " " << item.dura_time << "    ";
+				cout << item.task_id << " " << item.R << " " << item.dura_time << "    ";
 			}
 			cout << endl;
 		}
@@ -1439,7 +1477,7 @@ public:
 		int u = machine[move_seq.machine_id][move_seq.u].task_id;
 		int v = machine[move_seq.machine_id][move_seq.v].task_id;
 		bool is_forward = move_seq.is_forward;
-		watch(move_seq.obj, u, v, is_forward);
+		watch(move_seq.obj, u, v, is_forward, move_seq.u, move_seq.v);
 #endif // SHOW_MOVE
 	}
 
@@ -1449,7 +1487,8 @@ public:
 		int m1 = move_machine.m1;
 		int u = machine[move_machine.m1][move_machine.u].task_id;
 		int m2 = move_machine.m2;
-		int v = machine[move_machine.m2][move_machine.v].task_id;
+		
+		int v = machine[move_machine.m2][max(move_machine.v, 0)].task_id;
 		watch(move_machine.obj, m1, u, m2, v);
 #endif // SHOW_MOVE
 	}
